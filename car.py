@@ -15,6 +15,10 @@ class CarImage(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+    def changeColor(self, color):
+        self.color = color
+        self.image.fill(color)
+
 class Car():
     def __init__(self, cid, (x, y)):
         self.cid = cid
@@ -24,9 +28,11 @@ class Car():
         self.y = y + 2
         self.dx = 0.1 + random.random() * (CARSPEED - 0.1)
         self.dy = 0
-        self.sprite.add(CarImage(self.x, self.y, CARWIDTH, CARHEIGHT))
+        self.car = CarImage(self.x, self.y, CARWIDTH, CARHEIGHT)
+        self.sprite.add(self.car)
         self.decbuffer = CarImage(self.x + CARWIDTH + 2, self.y, SPACING * self.dx, CARHEIGHT)
         self.incbuffer = CarImage(self.x + CARWIDTH + 2, self.y, SPACING * self.dx * 4, CARHEIGHT)
+        self.isSelected = False
         #self.bbuffer = 
 
     def setPosition(self, (x, y)):
@@ -37,20 +43,24 @@ class Car():
         self.decbuffer.updatePosition(self.x + CARWIDTH + 2, self.y)
         self.incbuffer.updatePosition(self.x + CARWIDTH + 2, self.y)
 
+    def collide(self, p):
+        return self.car.rect.collidepoint(p)
+
+    def slowDown(self):
+        self.dx = max(self.dx * 0.9, 0.1)
+        self.decbuffer.image = pygame.Surface([SPACING * self.dx, CARHEIGHT])
+        self.incbuffer.image = pygame.Surface([SPACING * self.dx * 3, CARHEIGHT])
+
+    def speedUp(self):
+        self.dx = min(self.dx * 1.1, 0.5)
+        self.decbuffer.image = pygame.Surface([SPACING * self.dx, CARHEIGHT])
+        self.incbuffer.image = pygame.Surface([SPACING * self.dx * 3, CARHEIGHT])
+
     def updatePosition(self, allcars):
-        if pygame.sprite.spritecollideany(self.decbuffer, allcars) is not None:
-            print "collision, reducing!"
-            self.dx = max(self.dx * 0.9, 0.1)
-            self.decbuffer.image = pygame.Surface([SPACING * self.dx, CARHEIGHT])
-            self.incbuffer.image = pygame.Surface([SPACING * self.dx * 3, CARHEIGHT])
-        if pygame.sprite.spritecollideany(self.incbuffer, allcars) is None:
-            print "no cars, speed up!"
-            self.dx = min(self.dx * 1.1, 0.5)
-            self.decbuffer.image = pygame.Surface([SPACING * self.dx, CARHEIGHT])
-            self.incbuffer.image = pygame.Surface([SPACING * self.dx * 3, CARHEIGHT])
-        #self.oldx = self.x
-        #for s in self.sprite:
-        #    s.updatePosition(self.x + SPACING*self.dx)
+        if pygame.sprite.spritecollideany(self.decbuffer, allcars) is not None and not self.isSelected:
+            self.slowDown()
+        if pygame.sprite.spritecollideany(self.incbuffer, allcars) is None and not self.isSelected:
+            self.speedUp()
 
         self.x += self.dx
         if self.x + CARSIZE >= HEND:
@@ -69,6 +79,13 @@ class Car():
     def setHighway(self, hid, highway):
         self.currentHighway = hid
         #TODO: more
+
+    def selected(self, s):
+        if s:
+          self.car.changeColor(red)
+        else:
+          self.car.changeColor(CARCOLOR)
+        self.isSelected = s
 
 
 

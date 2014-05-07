@@ -31,6 +31,7 @@ def mainLoop(screen, world):
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
+    selected = None
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -38,6 +39,19 @@ def mainLoop(screen, world):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     world.addCar()
+                if event.key == pygame.K_b:
+                    print "b"
+                    if selected:
+                        selected.slowDown()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                for car in world.cars:
+                    if car.collide(pos):
+                        selected = car
+                        car.selected(True)
+                    else:
+                        car.selected(False)
+                
         # update everything
         world.update()
 
